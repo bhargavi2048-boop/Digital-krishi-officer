@@ -6,9 +6,11 @@
 
 ## 📖 Project Overview
 
-**Digital Krishi Officer** is a comprehensive, production-grade mobile application designed to serve as an always-available **"Digital Krishi Officer"** for Indian farmers. The application brings state-of-the-art multimodal Artificial Intelligence (Google Gemini), real-time meteorological advisories, smart crop recommendation algorithms, and authentic government scheme databases right into the farmer's pocket—in their own native language.
+**Digital Krishi Officer** is a comprehensive, production-grade agricultural advisory ecosystem designed to serve as an always-available **"Digital Krishi Officer"** for Indian farmers. The platform brings state-of-the-art multimodal Artificial Intelligence (Google Gemini), real-time meteorological advisories, live APMC Mandi rates, smart crop recommendation algorithms, and authentic government scheme databases right into the farmer's pocket—in their native languages and dialects (including Tanglish and Hinglish).
 
-The application is engineered strictly as a **client-first Flutter mobile application with zero backend or external database server dependencies** (No MongoDB, No Firebase, No Express/Node, No Supabase). All farmer profiles, agricultural holdings, conversations, disease diagnosis histories, alerts, and saved bookmarks are stored securely and privately on the farmer's local device.
+The project is architected as a complete **Full-Stack Agricultural Platform**:
+- 📱 **Frontend:** A cross-platform **Flutter** (Dart) mobile and web application with voice-first audio playback (TTS), offline fallback databases, and guest access.
+- ☕ **Backend:** A robust, enterprise-grade **Java Spring Boot 3** REST API backend built on textbook **Object-Oriented Programming (OOP)** principles, Hibernate/JPA, and H2 database with interactive Swagger/OpenAPI documentation.
 
 ---
 
@@ -89,20 +91,54 @@ The application is engineered strictly as a **client-first Flutter mobile applic
 
 ---
 
-## 🛠️ Tech Stack
-
+### 📱 Frontend (Mobile & Web)
 | Component | Technology |
 |---|---|
 | **Framework** | Flutter (v3.3+) |
 | **Language** | Dart (v3.3+) |
-| **Design System** | Material 3 (Responsive Android-first UI) |
+| **Design System** | Material 3 (Responsive Android & Web UI) |
 | **State Management** | Provider |
-| **AI Engine** | Google Gemini API (REST over HTTP) |
+| **AI Integration** | Google Gemini API (Multimodal Vision & Dialect Mirroring) |
+| **Audio & Speech** | `flutter_tts` (Voice-first advisory) & `speech_to_text` |
 | **Weather Engine** | Open-Meteo REST API + OpenWeatherMap |
-| **Local Persistence** | SharedPreferences (JSON Model Serializers) |
-| **Audio & Speech** | speech_to_text & flutter_tts |
-| **Media** | image_picker & share_plus |
-| **Environment** | flutter_dotenv (.env) |
+| **Market Rates** | APMC Mandi Service (e-NAM rates with daily timestamps) |
+| **Social Sharing** | `share_plus` (WhatsApp prescription slip generator) |
+| **Local Storage** | SharedPreferences & Offline Fallback Database |
+
+### ☕ Backend (Enterprise REST API & OOP Engine)
+| Component | Technology |
+|---|---|
+| **Language** | Java 17 (LTS) |
+| **Framework** | Spring Boot 3.3.4 |
+| **Data Layer** | Spring Data JPA, Hibernate ORM |
+| **Database** | In-Memory H2 Database (with browser-based console) |
+| **API Documentation** | SpringDoc OpenAPI 3 / Swagger UI |
+| **Validation** | Jakarta Bean Validation (`@NotNull`, `@NotBlank`) |
+| **Testing** | JUnit 5, Mockito |
+| **Build Tool** | Apache Maven |
+
+---
+
+## ☕ Java Spring Boot Backend & OOP Architecture
+
+The `backend/` directory provides a clean, modular Java Spring Boot service designed as a showcase of core **Object-Oriented Programming (OOP)** principles:
+
+### 🧩 OOP Principles in Action
+1. **Encapsulation:** All model entities (`Farmer`, `Crop`, `DiseaseRecord`) protect internal state using `private` variables, accessor/mutator methods, and Data Transfer Objects (DTOs) separating the database layer from client requests.
+2. **Inheritance:** Common auditing attributes (`id`, `createdAt`, `updatedAt`) are inherited cleanly from `@MappedSuperclass public abstract class BaseEntity`.
+3. **Polymorphism & Abstraction:** Strict separation of contracts through interfaces (`AiAdvisoryService`, `CropService`, `FarmerService`, `WeatherService`) and runtime implementations (`GeminiAdvisoryServiceImpl`, `CropServiceImpl`), allowing flexible swapping of advisory engines.
+4. **Exception Handling:** Centralized `@ControllerAdvice` (`GlobalExceptionHandler`) intercepts domain exceptions and delivers standardized, farmer-friendly JSON error structures.
+5. **Collections & Stream API:** Used throughout service logic for filtering crops, mapping entities to response DTOs, and computing agronomic metrics.
+
+### 🌐 Running the Java Backend
+```powershell
+cd backend
+mvn spring-boot:run
+```
+Once started (Port `8080`):
+- **Interactive Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **H2 Database Console:** [http://localhost:8080/h2-console](http://localhost:8080/h2-console) (JDBC URL: `jdbc:h2:mem:krishidb`)
+- **Health Endpoint:** [http://localhost:8080/api/health](http://localhost:8080/api/health)
 
 ---
 
@@ -110,12 +146,28 @@ The application is engineered strictly as a **client-first Flutter mobile applic
 
 ```text
 digital_krishi_officer/
-├── .env                              # Environment configuration (Keys)
 ├── .env.example                      # Template for configuration
 ├── .gitignore                        # Git exclusion rules
-├── pubspec.yaml                      # Dependencies and assets
-├── README.md                         # Documentation
+├── analysis_options.yaml             # Dart lint rules
+├── pubspec.yaml                      # Flutter dependencies and assets
+├── README.md                         # Project documentation
 ├── android/                          # Native Android configuration & permissions
+├── web/                              # Flutter web runner & deployment files
+├── test/                             # 36 Flutter unit and widget tests
+├── backend/                          # ☕ Java Spring Boot Backend (OOP)
+│   ├── pom.xml                       # Maven build configuration
+│   ├── run-backend.bat               # Windows 1-click runner
+│   └── src/
+│       ├── main/java/com/krishiofficer/
+│       │   ├── controller/           # Spring REST Controllers
+│       │   ├── dto/                  # Data Transfer Objects
+│       │   ├── entity/               # JPA Entities (OOP hierarchy)
+│       │   ├── exception/            # Custom exceptions & Global Handler
+│       │   ├── repository/           # Spring Data JPA Repositories
+│       │   └── service/              # Service interfaces & implementations
+│       └── main/resources/
+│           └── application.properties # App config & H2 DB setup
+├── digital_krishi_officer.zip        # Pre-packaged, clean source archive
 ├── assets/                           # Image and icon assets
 ├── lib/
 │   ├── main.dart                     # App entry point & initialization
