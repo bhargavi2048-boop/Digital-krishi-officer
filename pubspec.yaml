@@ -1,0 +1,57 @@
+name: digital_krishi_officer
+description: "AI-Based Farmer Query Support and Advisory System - Digital Krishi Officer"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.2
+
+  # Environment Configuration
+  flutter_dotenv: ^5.1.0
+
+  # Network & REST APIs
+  http: ^1.2.1
+
+  # Local Persistence
+  shared_preferences: ^2.2.3
+
+  # Localization & Formatting
+  intl: ^0.20.3
+
+  # Hardware / Media
+  image_picker: ^1.1.1
+
+  # Typography & UI
+  google_fonts: ^6.2.1
+  flutter_markdown: ^0.7.2+1
+  flutter_spinkit: ^5.2.1
+
+  # Audio & Speech
+  flutter_tts: ^4.0.2
+  speech_to_text: ^6.6.1
+
+  # Sharing & External Links
+  share_plus: ^9.0.0
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
+    - assets/icons/
+    - assets/images/
