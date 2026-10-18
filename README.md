@@ -301,6 +301,11 @@ When transitioning this product to a centralized multi-farmer cloud platform:
 
 ---
 
-## 📄 License & Credits
-Developed with ❤️ for the agricultural community.
-© 2025-2026 Digital Krishi Officer Team. All rights reserved.
+## 👩‍💻 Developer & Credits
+
+- **Developer:** **Bhargavi N** (2nd Year Computer Science & Engineering (CSE) Student)
+- **Project:** Digital Krishi Officer — Full-Stack AI & Agricultural Advisory System
+- **GitHub:** [@bhargavi2048-boop](https://github.com/bhargavi2048-boop)
+
+Developed with ❤️ for the Indian agricultural community.  
+© 2025-2026 Bhargavi N. All rights reserved.

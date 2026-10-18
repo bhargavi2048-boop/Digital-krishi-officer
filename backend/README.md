@@ -52,3 +52,12 @@ Once started (port 8080):
 - `GET  /api/crops` & `POST /api/crops` — Crop lifecycle management.
 - `GET  /api/farmers` & `POST /api/farmers` — Farmer profile records.
 - `GET  /api/weather/forecast` — Real-time Open-Meteo weather with spray feasibility index.
+
+---
+
+## 👩‍💻 Developer & Credits
+
+- **Developer:** **Bhargavi N** (2nd Year Computer Science & Engineering (CSE) Student)
+- **Course:** Object-Oriented Programming (OOP) using Java (2nd Year Mini Project)
+- **GitHub:** [@bhargavi2048-boop](https://github.com/bhargavi2048-boop)
+© 2025-2026 Bhargavi N. All rights reserved.
