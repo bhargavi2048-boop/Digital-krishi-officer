@@ -308,4 +308,4 @@ When transitioning this product to a centralized multi-farmer cloud platform:
 - **GitHub:** [@bhargavi2048-boop](https://github.com/bhargavi2048-boop)
 
 Developed with ❤️ for the Indian agricultural community.  
-© 2025-2026 Bhargavi N. All rights reserved.
+© 2026 Bhargavi N. All rights reserved.
