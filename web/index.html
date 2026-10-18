@@ -1,23 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Digital Krishi Officer - Your AI-Powered Agricultural Assistant for Farmers">
 
   <!-- iOS meta tags & icons -->
@@ -31,16 +19,96 @@
 
   <title>Digital Krishi Officer - AI Agricultural Assistant</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #1B5E20;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #4CAF50 100%);
+      color: white;
+      z-index: 999999;
+      transition: opacity 0.4s ease-out;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .app-icon {
+      font-size: 56px;
+      margin-bottom: 12px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+    .app-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .app-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 28px;
+    }
+    .loader-spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50%;
+      border-top-color: #FFFFFF;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 14px;
+    }
+    .loader-text {
+      font-size: 13px;
+      letter-spacing: 0.3px;
+      opacity: 0.85;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="loading-screen">
+    <div class="app-icon">🌾</div>
+    <div class="app-title">Digital Krishi Officer</div>
+    <div class="app-subtitle">AI Agricultural Assistant for Farmers</div>
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Loading AI Agricultural Engine...</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    // Fade out splash screen when Flutter renders its first frame
+    window.addEventListener('flutter-first-frame', function() {
+      var loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(function() {
+          if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 400);
+      }
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
