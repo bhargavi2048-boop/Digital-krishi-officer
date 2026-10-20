@@ -336,6 +336,9 @@ class _DiseaseDetectionScreenState extends State<DiseaseDetectionScreen> {
             const SizedBox(height: 6),
             Text(
               label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

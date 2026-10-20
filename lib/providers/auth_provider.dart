@@ -22,8 +22,15 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _loadUserSession() {
-    _isLoggedIn = _storage.isLoggedIn();
-    _currentUser = _storage.getUser();
+    final user = _storage.getUser();
+    if (user != null && user.id == 'guest_farmer') {
+      _storage.logout();
+      _isLoggedIn = false;
+      _currentUser = null;
+    } else {
+      _isLoggedIn = _storage.isLoggedIn();
+      _currentUser = user;
+    }
     notifyListeners();
   }
 
@@ -218,7 +225,7 @@ class AuthProvider extends ChangeNotifier {
       );
 
       await _storage.saveUser(guestUser);
-      await _storage.setRememberMe(true);
+      await _storage.setRememberMe(false);
       _currentUser = guestUser;
       _isLoggedIn = true;
       _isLoading = false;

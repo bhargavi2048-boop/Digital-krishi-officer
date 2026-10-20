@@ -1,8 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../core/storage/local_storage_service.dart';
-import '../../providers/auth_provider.dart';
 import '../../app/routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,21 +34,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    _navTimer = Timer(const Duration(seconds: 6), _navigateNext);
+    // Fast 1.8s splash timer (or tap anywhere to skip)
+    _navTimer = Timer(const Duration(milliseconds: 1800), _navigateNext);
   }
 
   void _navigateNext() {
     if (!mounted) return;
-    final storage = LocalStorageService();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
+    _navTimer?.cancel();
 
-    if (!storage.isOnboardingCompleted()) {
-      Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-    } else if (auth.isLoggedIn) {
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
-    } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
-    }
+    // Every time the user opens the app, always start fresh at the authentication / welcome screen
+    // where they can Sign In, Sign Up (Create Account), or Continue as Guest
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
   @override
@@ -63,7 +56,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: _navigateNext,
+      child: Scaffold(
       backgroundColor: const Color(0xFF1B5E20), // Deep Krishi Green
       body: Center(
         child: FadeTransition(
@@ -145,6 +140,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

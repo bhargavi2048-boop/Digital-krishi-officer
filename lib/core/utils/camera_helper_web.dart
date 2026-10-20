@@ -153,39 +153,34 @@ class _WebCameraCaptureDialogState extends State<WebCameraCaptureDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header with top-level capture button
+              // Clean Header: "Live Capture Camera" is guaranteed to stay on a SINGLE LINE
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(Icons.camera_alt, color: Colors.greenAccent, size: 20),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Live Crop Camera',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.camera_alt, color: Colors.greenAccent, size: 22),
+                        SizedBox(width: 10),
+                        Text(
+                          'Live Capture Camera',
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    if (_isStreaming) ...[
-                      ElevatedButton.icon(
-                        onPressed: _capturePhoto,
-                        icon: const Icon(Icons.check, size: 16),
-                        label: const Text('SNAP PHOTO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2E7D32),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white70),
+                      tooltip: 'Close Camera',
                       onPressed: () {
                         _stopStream();
                         Navigator.of(context).pop(null);
@@ -237,7 +232,7 @@ class _WebCameraCaptureDialogState extends State<WebCameraCaptureDialog> {
                         Positioned(
                           top: 10,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.black54,
                               borderRadius: BorderRadius.circular(20),
@@ -245,11 +240,13 @@ class _WebCameraCaptureDialogState extends State<WebCameraCaptureDialog> {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.touch_app, color: Colors.greenAccent, size: 14),
+                                Icon(Icons.touch_app, color: Colors.greenAccent, size: 15),
                                 SizedBox(width: 6),
                                 Text(
                                   'Tap video or shutter to take photo',
-                                  style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w500),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -263,7 +260,7 @@ class _WebCameraCaptureDialogState extends State<WebCameraCaptureDialog> {
               // Controls Footer with Big Shutter Button
               Container(
                 color: const Color(0xFF142917),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -274,42 +271,61 @@ class _WebCameraCaptureDialogState extends State<WebCameraCaptureDialog> {
                         Navigator.of(context).pop(null);
                       },
                       icon: const Icon(Icons.close, color: Colors.white70, size: 18),
-                      label: const Text('Cancel', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      label: const Text(
+                        'Cancel',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
                     ),
 
                     // Primary Shutter Button (Impossible to miss circular camera shutter)
                     GestureDetector(
                       onTap: _isStreaming ? _capturePhoto : null,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3.5),
-                          color: Colors.white24,
-                        ),
-                        padding: const EdgeInsets.all(4),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _isStreaming ? const Color(0xFF2E7D32) : Colors.grey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3.5),
+                              color: Colors.white24,
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _isStreaming ? const Color(0xFF2E7D32) : Colors.grey,
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 28),
+                            ),
                           ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 28),
-                        ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Click Photo',
+                            maxLines: 1,
+                            softWrap: false,
+                            style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
 
                     // Explicit Click Photo Action Button
                     ElevatedButton.icon(
                       onPressed: _isStreaming ? _capturePhoto : null,
-                      icon: const Icon(Icons.camera, color: Colors.white, size: 18),
+                      icon: const Icon(Icons.camera, color: Colors.white, size: 16),
                       label: const Text(
-                        'Click Photo',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        'Capture',
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E7D32),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                     ),
