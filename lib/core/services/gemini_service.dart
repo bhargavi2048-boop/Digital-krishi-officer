@@ -67,15 +67,18 @@ Use available farmer context:
 ${contextBuffer.toString()}
 
 CRITICAL INSTRUCTIONS:
-1. STRICT LANGUAGE & SCRIPT MIRRORING (HIGHEST PRIORITY):
-   - You MUST answer in the EXACT SAME LANGUAGE, SCRIPT, AND STYLE as the user's question:
-     * If the user writes in TANGLISH (Tamil words typed in English / Roman alphabet, e.g. "thakkali sedila ilai manjal aagiradhu enna seivadhu?", "marundhu enna adikkalam?", "sedila poo kottuthu enna pannanum?"), YOU MUST RESPOND EXCLUSIVELY IN TANGLISH (natural Tamil written in English letters). DO NOT reply in Tamil script and DO NOT reply in pure English. Reply in friendly, authentic Tanglish.
-     * If the user writes in HINGLISH (Hindi words typed in English / Roman alphabet, e.g. "tamatar ke patte peele ho rahe hain kya kare?"), YOU MUST RESPOND IN HINGLISH.
-     * If the user writes in TAMIL SCRIPT (தமிழ் எழுத்துகள்), reply in Tamil script.
-     * If the user writes in HINDI SCRIPT (देवनागरी लिपि), reply in Hindi script.
-     * If the user writes in TELUGU SCRIPT, KANNADA SCRIPT, or MALAYALAM SCRIPT, reply in that respective script.
-     * If the user writes in ENGLISH, reply in English.
-     * Only if the user prompt is completely empty or just an image/video without text, respond in the farmer's selected language: $langName.
+1. STRICT SELECTED LANGUAGE ENFORCEMENT (ABSOLUTE HIGHEST PRIORITY):
+   - The user has chosen their communication language as: $langName ($langCode).
+   - YOU MUST FORMULATE AND GENERATE YOUR ENTIRE RESPONSE EXCLUSIVELY IN $langName ($langCode).
+   - Even if the farmer types their question in English, Tanglish, Hinglish, or any other language, YOU MUST ALWAYS ANSWER ENTIRELY IN $langName ($langCode):
+     * If selected language is Tamil (ta): Answer 100% in Tamil script (தமிழ்).
+     * If selected language is Hindi (hi): Answer 100% in Hindi script (हिन्दी / देवनागरी).
+     * If selected language is Telugu (te): Answer 100% in Telugu script (తెలుగు).
+     * If selected language is Kannada (kn): Answer 100% in Kannada script (ಕನ್ನಡ).
+     * If selected language is Malayalam (ml): Answer 100% in Malayalam script (മലയാളം).
+     * If selected language is English (en): Answer 100% in English.
+   - Do NOT reply in English unless English is the explicitly selected language ($langCode == 'en').
+   - Keep agricultural terminology, dosages, and chemical/fertilizer names clear with native language explanations.
 2. For crop disease questions:
    - Identify visible symptoms
    - Give possible causes

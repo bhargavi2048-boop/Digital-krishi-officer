@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/location_data.dart';
@@ -56,20 +56,20 @@ class LocationDetectorService {
     }
 
     try {
-      // 2. Fallback to ip-api.com
-      final uri = Uri.parse('http://ip-api.com/json');
+      // 2. HTTPS Fallback to FreeIPAPI
+      final uri = Uri.parse('https://freeipapi.com/api/json');
       final res = await http.get(uri).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
-        if (data['status'] == 'success') {
-          final city = (data['city'] ?? '').toString().trim();
-          final regionName = (data['regionName'] ?? 'Tamil Nadu').toString().trim();
-          final lat = (data['lat'] is num) ? (data['lat'] as num).toDouble() : null;
-          final lon = (data['lon'] is num) ? (data['lon'] as num).toDouble() : null;
+        final city = (data['cityName'] ?? '').toString().trim();
+        final regionName = (data['regionName'] ?? 'Tamil Nadu').toString().trim();
+        final lat = (data['latitude'] is num) ? (data['latitude'] as num).toDouble() : null;
+        final lon = (data['longitude'] is num) ? (data['longitude'] as num).toDouble() : null;
 
+        if (city.isNotEmpty || regionName.isNotEmpty) {
           return _normalizeDetectedLocation(
-            city: city,
-            district: city,
+            city: city.isNotEmpty ? city : regionName,
+            district: city.isNotEmpty ? city : regionName,
             state: regionName,
             lat: lat,
             lon: lon,
@@ -78,6 +78,31 @@ class LocationDetectorService {
       }
     } catch (e) {
       debugPrint('Secondary location detection error: $e');
+    }
+
+    try {
+      // 3. Fallback to ipapi.co
+      final uri = Uri.parse('https://ipapi.co/json/');
+      final res = await http.get(uri).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final data = json.decode(res.body);
+        final city = (data['city'] ?? '').toString().trim();
+        final region = (data['region'] ?? 'Tamil Nadu').toString().trim();
+        final lat = (data['latitude'] is num) ? (data['latitude'] as num).toDouble() : null;
+        final lon = (data['longitude'] is num) ? (data['longitude'] as num).toDouble() : null;
+
+        if (city.isNotEmpty || region.isNotEmpty) {
+          return _normalizeDetectedLocation(
+            city: city,
+            district: city,
+            state: region,
+            lat: lat,
+            lon: lon,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Tertiary location detection error: $e');
     }
 
     // Default return Chennai if in India / default demo location

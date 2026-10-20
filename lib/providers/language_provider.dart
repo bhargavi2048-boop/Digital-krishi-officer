@@ -24,4 +24,8 @@ class LanguageProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> setLocale(Locale locale) async {
+    await setLanguage(locale.languageCode);
+  }
 }

@@ -9,6 +9,7 @@ import '../../providers/language_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/app_image_preview.dart';
 import '../../core/utils/image_helper.dart';
+import '../../core/utils/camera_helper.dart';
 import 'widgets/chat_bubble.dart';
 import 'widgets/voice_input_sheet.dart';
 import 'chat_history_screen.dart';
@@ -32,6 +33,27 @@ class _AiChatScreenState extends State<AiChatScreen> {
   int? _attachedMediaSize;
   bool _isAttachedVideo = false;
 
+  // Selected chat communication language
+  String? _selectedChatLanguage;
+
+  static const Map<String, String> _languages = {
+    'en': 'English',
+    'ta': 'தமிழ் (Tamil)',
+    'hi': 'हिन्दी (Hindi)',
+    'te': 'తెలుగు (Telugu)',
+    'kn': 'ಕನ್ನಡ (Kannada)',
+    'ml': 'മലയാളം (Malayalam)',
+  };
+
+  static const Map<String, String> _shortLangNames = {
+    'en': 'English',
+    'ta': 'தமிழ்',
+    'hi': 'हिन्दी',
+    'te': 'తెలుగు',
+    'kn': 'ಕನ್ನಡ',
+    'ml': 'മലയാളം',
+  };
+
   @override
   void dispose() {
     _textController.dispose();
@@ -51,6 +73,20 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
+      if (source == ImageSource.camera) {
+        final captured = await CameraHelper.captureLivePhoto(context);
+        if (captured != null) {
+          setState(() {
+            _attachedMediaBytes = captured.bytes;
+            _attachedMediaPath = captured.path;
+            _attachedMediaName = captured.name;
+            _attachedMediaSize = captured.size;
+            _isAttachedVideo = false;
+          });
+          return;
+        }
+      }
+
       final picked = await _picker.pickImage(
         source: source,
         maxWidth: 1280,
@@ -152,10 +188,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
           : 'Please examine this crop leaf/plant photo. What disease or pest is affecting this crop, and how can I treat it?';
     }
 
+    final activeLang = _selectedChatLanguage ?? lang.currentLanguageCode;
+
     await chat.sendMessage(
       text: messageText,
       profile: auth.currentUser,
-      langCode: lang.currentLanguageCode,
+      langCode: activeLang,
       imagePath: isVideo ? null : mediaPath,
       imageBytes: isVideo ? null : mediaBytes,
       videoPath: isVideo ? mediaPath : null,
@@ -266,6 +304,74 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ],
         ),
         actions: [
+          // Language selection dropdown menu
+          PopupMenuButton<String>(
+            tooltip: 'Select AI Language',
+            offset: const Offset(0, 48),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF2E7D32), width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.translate, size: 15, color: Color(0xFF2E7D32)),
+                  const SizedBox(width: 4),
+                  Text(
+                    _shortLangNames[_selectedChatLanguage ?? lang.currentLanguageCode] ?? 'EN',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1B5E20),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF2E7D32)),
+                ],
+              ),
+            ),
+            onSelected: (val) {
+              setState(() {
+                _selectedChatLanguage = val;
+              });
+              lang.setLocale(Locale(val));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('AI responses set strictly to ${_languages[val] ?? val}'),
+                  backgroundColor: const Color(0xFF2E7D32),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+            itemBuilder: (ctx) => _languages.entries.map((entry) {
+              final isSelected = (_selectedChatLanguage ?? lang.currentLanguageCode) == entry.key;
+              return PopupMenuItem(
+                value: entry.key,
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected ? Icons.check_circle : Icons.circle_outlined,
+                      size: 18,
+                      color: isSelected ? const Color(0xFF2E7D32) : Colors.grey,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      entry.value,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? const Color(0xFF1B5E20) : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'Chat History',
@@ -310,6 +416,35 @@ class _AiChatScreenState extends State<AiChatScreen> {
       ),
       body: Column(
         children: [
+          // Top banner showing active AI response language
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              border: Border(bottom: BorderSide(color: Colors.green.shade200, width: 0.8)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF2E7D32)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'AI replies strictly in: ${_languages[_selectedChatLanguage ?? lang.currentLanguageCode] ?? 'English'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1B5E20),
+                    ),
+                  ),
+                ),
+                Text(
+                  'Tap language button above to change',
+                  style: TextStyle(fontSize: 11, color: Colors.green.shade800),
+                ),
+              ],
+            ),
+          ),
           // Chat Messages List
           Expanded(
             child: ListView.builder(

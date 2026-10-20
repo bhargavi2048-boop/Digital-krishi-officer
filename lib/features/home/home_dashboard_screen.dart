@@ -28,7 +28,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final weather = Provider.of<WeatherProvider>(context, listen: false);
-      weather.loadWeather(profile: auth.currentUser);
+      weather.detectAndLoadLocationWeather(profile: auth.currentUser);
     });
   }
 
@@ -54,11 +54,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         ? (auth.isGuest ? context.tr('guestFarmer') : auth.currentUser!.fullName)
         : context.tr('farmer');
 
-    final locationText = auth.currentUser != null
-        ? (auth.currentUser!.city.isNotEmpty && auth.currentUser!.city.toLowerCase() != auth.currentUser!.district.toLowerCase()
-            ? '${auth.currentUser!.city}, ${auth.currentUser!.district}'
-            : '${auth.currentUser!.district}, ${auth.currentUser!.state}')
-        : (weather.currentLocationName.isNotEmpty ? weather.currentLocationName : 'Chennai, Tamil Nadu');
+    final locationText = weather.currentLocationName.isNotEmpty
+        ? weather.currentLocationName
+        : (auth.currentUser != null
+            ? (auth.currentUser!.city.isNotEmpty && auth.currentUser!.city.toLowerCase() != auth.currentUser!.district.toLowerCase()
+                ? '${auth.currentUser!.city}, ${auth.currentUser!.district}'
+                : '${auth.currentUser!.district}, ${auth.currentUser!.state}')
+            : 'Chennai, Tamil Nadu');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),

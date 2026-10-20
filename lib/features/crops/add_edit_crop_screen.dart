@@ -36,16 +36,16 @@ class _AddEditCropScreenState extends State<AddEditCropScreen> {
   void initState() {
     super.initState();
     final c = widget.cropToEdit;
-    _nameController = TextEditingController(text: c?.name ?? 'Tomato');
-    _varietyController = TextEditingController(text: c?.variety ?? 'Hybrid F1');
-    _landAreaController = TextEditingController(text: c != null ? c.landAreaAcres.toString() : '1.0');
+    _nameController = TextEditingController(text: c?.name ?? '');
+    _varietyController = TextEditingController(text: c?.variety ?? '');
+    _landAreaController = TextEditingController(text: c != null ? c.landAreaAcres.toString() : '');
     _notesController = TextEditingController(text: c?.notes ?? '');
 
-    _plantingDate = c?.plantingDate ?? DateTime.now().subtract(const Duration(days: 30));
-    _expectedHarvestDate = c?.expectedHarvestDate ?? DateTime.now().add(const Duration(days: 60));
+    _plantingDate = c?.plantingDate ?? DateTime.now();
+    _expectedHarvestDate = c?.expectedHarvestDate ?? DateTime.now().add(const Duration(days: 90));
     _selectedSoilType = c?.soilType ?? 'Alluvial Soil';
     _selectedWaterSource = c?.waterSource ?? 'Drip Irrigation';
-    _selectedStage = c?.stage ?? 'Vegetative';
+    _selectedStage = c?.stage ?? 'Sown';
   }
 
   @override
@@ -252,6 +252,7 @@ class _AddEditCropScreenState extends State<AddEditCropScreen> {
               CustomTextField(
                 controller: _landAreaController,
                 label: '${context.tr('landArea')} (${context.tr('acres')})',
+                hint: 'e.g. 2.5',
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 prefixIcon: Icons.landscape,
               ),

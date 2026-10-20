@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/weather_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -41,6 +42,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
+      // Auto-detect user current location and update weather on login
+      try {
+        final weather = Provider.of<WeatherProvider>(context, listen: false);
+        weather.detectAndLoadLocationWeather(profile: auth.currentUser);
+      } catch (e) {
+        debugPrint('Weather auto update on login error: $e');
+      }
+
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -238,6 +247,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () async {
                       final success = await auth.loginAsGuest();
                       if (success && mounted) {
+                        try {
+                          final weather = Provider.of<WeatherProvider>(context, listen: false);
+                          weather.detectAndLoadLocationWeather(profile: auth.currentUser);
+                        } catch (_) {}
                         Navigator.pushReplacementNamed(context, AppRoutes.home);
                       }
                     },

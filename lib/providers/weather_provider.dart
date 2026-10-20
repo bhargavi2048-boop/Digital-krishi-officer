@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../core/services/weather_service.dart';
+import '../core/services/location_detector_service.dart';
 import '../core/storage/local_storage_service.dart';
 import '../models/weather_data.dart';
 import '../models/farmer_profile.dart';
@@ -75,5 +76,36 @@ class WeatherProvider extends ChangeNotifier {
   Future<void> updateCurrentCoordinates(double lat, double lon, String detectedPlace) async {
     _currentLocationName = detectedPlace;
     await loadWeather(latitude: lat, longitude: lon);
+  }
+
+  /// Automatically detects user's live physical location and refreshes weather
+  Future<void> detectAndLoadLocationWeather({FarmerProfile? profile}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final detected = await LocationDetectorService().detectCurrentLocation();
+      if (detected != null) {
+        final locationStr = (detected.district.isNotEmpty && detected.state.isNotEmpty)
+            ? '${detected.district}, ${detected.state}'
+            : (detected.city.isNotEmpty ? detected.city : 'Current Location');
+        _currentLocationName = locationStr;
+
+        if (detected.latitude != null && detected.longitude != null) {
+          await loadWeather(
+            profile: profile,
+            latitude: detected.latitude,
+            longitude: detected.longitude,
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('Auto-location detection exception: $e');
+    }
+
+    // Fallback to profile or default location
+    await loadWeather(profile: profile);
   }
 }

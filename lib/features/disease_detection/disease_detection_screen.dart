@@ -5,6 +5,7 @@ import '../../providers/disease_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../core/utils/image_helper.dart';
+import '../../core/utils/camera_helper.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/app_image_preview.dart';
 import '../../widgets/custom_button.dart';
@@ -23,22 +24,10 @@ class DiseaseDetectionScreen extends StatefulWidget {
 }
 
 class _DiseaseDetectionScreenState extends State<DiseaseDetectionScreen> {
-  late TextEditingController _cropNameController;
   final TextEditingController _symptomDescController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final userCrop = auth.currentUser?.mainCrop;
-    _cropNameController = TextEditingController(
-      text: widget.initialCropName ?? ((userCrop != null && userCrop.isNotEmpty) ? userCrop : ''),
-    );
-  }
-
-  @override
   void dispose() {
-    _cropNameController.dispose();
     _symptomDescController.dispose();
     super.dispose();
   }
@@ -49,7 +38,7 @@ class _DiseaseDetectionScreenState extends State<DiseaseDetectionScreen> {
     final lang = Provider.of<LanguageProvider>(context, listen: false);
 
     final success = await diseaseProv.analyzeCropDisease(
-      cropName: _cropNameController.text.trim(),
+      cropName: (auth.currentUser?.mainCrop.isNotEmpty == true) ? auth.currentUser!.mainCrop : '',
       description: _symptomDescController.text.trim(),
       profile: auth.currentUser,
       langCode: lang.currentLanguageCode,
@@ -142,15 +131,6 @@ class _DiseaseDetectionScreenState extends State<DiseaseDetectionScreen> {
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 18),
-
-                // Crop Name selection
-                CustomTextField(
-                  controller: _cropNameController,
-                  label: context.tr('cropName'),
-                  hint: 'e.g. Tomato, Paddy, Cotton, Chilli',
-                  prefixIcon: Icons.grass,
                 ),
                 const SizedBox(height: 18),
 
@@ -265,7 +245,12 @@ class _DiseaseDetectionScreenState extends State<DiseaseDetectionScreen> {
                               child: _buildMediaButton(
                                 icon: Icons.camera_alt,
                                 label: context.tr('takePhoto'),
-                                onTap: () => diseaseProv.pickImage(ImageSource.camera),
+                                onTap: () async {
+                                  final captured = await CameraHelper.captureLivePhoto(context);
+                                  if (captured != null) {
+                                    diseaseProv.setSelectedCapturedMedia(captured);
+                                  }
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/storage/local_storage_service.dart';
 import '../core/services/gemini_service.dart';
+import '../core/utils/camera_helper.dart';
 import '../models/disease_analysis.dart';
 import '../models/farmer_profile.dart';
 import '../models/saved_item.dart';
@@ -63,6 +64,21 @@ class DiseaseProvider extends ChangeNotifier {
       _errorMessage = 'Could not select image: $e';
       notifyListeners();
     }
+  }
+
+  void setSelectedCapturedMedia(CapturedMedia captured) {
+    _selectedMedia = XFile.fromData(
+      captured.bytes,
+      name: captured.name,
+      path: captured.path,
+      length: captured.size,
+    );
+    _selectedMediaBytes = captured.bytes;
+    _selectedMediaSize = captured.size;
+    _selectedMediaName = captured.name;
+    _isVideo = false;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   Future<void> pickVideo(ImageSource source) async {
