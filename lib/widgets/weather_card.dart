@@ -5,11 +5,13 @@ import '../l10n/app_localizations.dart';
 class WeatherCard extends StatelessWidget {
   final WeatherData? weather;
   final VoidCallback? onTap;
+  final VoidCallback? onChangeLocation;
 
   const WeatherCard({
     super.key,
     required this.weather,
     this.onTap,
+    this.onChangeLocation,
   });
 
   IconData _getWeatherIcon(String condition) {
@@ -65,23 +67,50 @@ class WeatherCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on, color: Colors.white70, size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          weather!.locationName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                  child: InkWell(
+                    onTap: onChangeLocation ?? onTap,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on, color: Colors.white, size: 18),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              weather!.locationName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.map_outlined, color: Colors.white, size: 12),
+                                SizedBox(width: 3),
+                                Text(
+                                  'Change',
+                                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

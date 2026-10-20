@@ -24,13 +24,13 @@ class WeatherProvider extends ChangeNotifier {
     loadWeather(profile: storedUser);
   }
 
-  Future<void> loadWeather({FarmerProfile? profile, double? latitude, double? longitude}) async {
+  Future<void> loadWeather({FarmerProfile? profile, double? latitude, double? longitude, bool resetToProfile = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     final activeProfile = profile ?? _storage.getUser();
-    if (activeProfile != null) {
+    if ((_currentLocationName.isEmpty || resetToProfile) && activeProfile != null) {
       final city = activeProfile.city.trim();
       final district = activeProfile.district.trim();
       final state = activeProfile.state.trim();

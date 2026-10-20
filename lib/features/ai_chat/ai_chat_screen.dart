@@ -296,7 +296,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   children: [
                     Container(width: 7, height: 7, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
                     const SizedBox(width: 4),
-                    const Text('Online • Multilingual & Multimodal', style: TextStyle(fontSize: 10.5, color: Colors.grey)),
+                    Text(
+                      'AI replies in: ${_languages[_selectedChatLanguage ?? lang.currentLanguageCode] ?? 'English'}',
+                      style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w500),
+                    ),
                   ],
                 ),
               ],
@@ -304,34 +307,33 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ],
         ),
         actions: [
-          // Language selection dropdown menu
+          // Compact AI language selector button
           PopupMenuButton<String>(
             tooltip: 'Select AI Language',
-            offset: const Offset(0, 48),
+            offset: const Offset(0, 44),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF2E7D32), width: 1.2),
+                border: Border.all(color: const Color(0xFF2E7D32), width: 1.0),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.translate, size: 15, color: Color(0xFF2E7D32)),
-                  const SizedBox(width: 4),
+                  const Icon(Icons.translate, size: 13, color: Color(0xFF2E7D32)),
+                  const SizedBox(width: 3),
                   Text(
                     _shortLangNames[_selectedChatLanguage ?? lang.currentLanguageCode] ?? 'EN',
                     style: const TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1B5E20),
                     ),
                   ),
-                  const SizedBox(width: 2),
-                  const Icon(Icons.arrow_drop_down, size: 16, color: Color(0xFF2E7D32)),
+                  const Icon(Icons.arrow_drop_down, size: 14, color: Color(0xFF2E7D32)),
                 ],
               ),
             ),
@@ -339,7 +341,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               setState(() {
                 _selectedChatLanguage = val;
               });
-              lang.setLocale(Locale(val));
+              // Scoped strictly to chatbot only - do NOT alter global application locale
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('AI responses set strictly to ${_languages[val] ?? val}'),
@@ -416,35 +418,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
       ),
       body: Column(
         children: [
-          // Top banner showing active AI response language
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              border: Border(bottom: BorderSide(color: Colors.green.shade200, width: 0.8)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.chat_bubble_outline, size: 14, color: Color(0xFF2E7D32)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'AI replies strictly in: ${_languages[_selectedChatLanguage ?? lang.currentLanguageCode] ?? 'English'}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1B5E20),
-                    ),
-                  ),
-                ),
-                Text(
-                  'Tap language button above to change',
-                  style: TextStyle(fontSize: 11, color: Colors.green.shade800),
-                ),
-              ],
-            ),
-          ),
           // Chat Messages List
           Expanded(
             child: ListView.builder(

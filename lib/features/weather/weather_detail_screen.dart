@@ -23,11 +23,35 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     super.dispose();
   }
 
+  void _applyLocationChange(String loc) {
+    final clean = loc.trim();
+    if (clean.isEmpty) return;
+    
+    final weatherProv = Provider.of<WeatherProvider>(context, listen: false);
+    weatherProv.changeLocation(clean);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Weather location updated to $clean'),
+        backgroundColor: const Color(0xFF2E7D32),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _showChangeLocationDialog() {
+    _searchController.text = Provider.of<WeatherProvider>(context, listen: false).currentLocationName;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Change Weather Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.location_on, color: Color(0xFF2E7D32)),
+            SizedBox(width: 8),
+            Text('Change Weather Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -35,10 +59,17 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             children: [
               TextField(
                 controller: _searchController,
+                autofocus: true,
                 decoration: const InputDecoration(
-                  hintText: 'Enter District or City (e.g. Chennai, Madurai)',
+                  hintText: 'Enter District or City (e.g. Madurai)',
                   prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
+                onSubmitted: (val) {
+                  Navigator.pop(ctx);
+                  _applyLocationChange(val);
+                },
               ),
               const SizedBox(height: 12),
               const Text('Quick Select:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
@@ -46,12 +77,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: ['Chennai', 'Thanjavur', 'Coimbatore', 'Madurai', 'Trichy', 'Salem'].map((loc) {
+                children: ['Chennai', 'Thanjavur', 'Coimbatore', 'Madurai', 'Trichy', 'Salem', 'Tirunelveli', 'Erode'].map((loc) {
                   return ActionChip(
                     label: Text(loc, style: const TextStyle(fontSize: 11.5)),
+                    backgroundColor: const Color(0xFFE8F5E9),
                     onPressed: () {
-                      Provider.of<WeatherProvider>(context, listen: false).changeLocation(loc);
                       Navigator.pop(ctx);
+                      _applyLocationChange(loc);
                     },
                   );
                 }).toList(),
@@ -60,18 +92,31 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               OutlinedButton.icon(
                 onPressed: () async {
                   Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Detecting your GPS location...'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                   final loc = await LocationDetectorService().detectCurrentLocation();
                   if (loc != null && mounted) {
                     final weather = Provider.of<WeatherProvider>(context, listen: false);
+                    final name = '${loc.district}, ${loc.state}';
                     if (loc.latitude != null && loc.longitude != null) {
-                      weather.updateCurrentCoordinates(loc.latitude!, loc.longitude!, '${loc.district}, ${loc.state}');
+                      weather.updateCurrentCoordinates(loc.latitude!, loc.longitude!, name);
                     } else {
-                      weather.changeLocation('${loc.district}, ${loc.state}');
+                      weather.changeLocation(name);
                     }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Location detected: $name'),
+                        backgroundColor: const Color(0xFF2E7D32),
+                      ),
+                    );
                   }
                 },
                 icon: const Icon(Icons.my_location, size: 16, color: Color(0xFF2E7D32)),
-                label: const Text('Detect Current Location', style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32))),
+                label: const Text('Detect Current GPS Location', style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32))),
               ),
             ],
           ),
@@ -81,10 +126,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           ElevatedButton(
             onPressed: () {
               final loc = _searchController.text.trim();
-              if (loc.isNotEmpty) {
-                Provider.of<WeatherProvider>(context, listen: false).changeLocation(loc);
-                Navigator.pop(ctx);
-              }
+              Navigator.pop(ctx);
+              _applyLocationChange(loc);
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32)),
             child: const Text('Update'),
@@ -136,8 +179,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Main Live Weather Card
-                  WeatherCard(weather: w),
+                  // Main Live Weather Card (Tapping location or card opens Change Location)
+                  WeatherCard(
+                    weather: w,
+                    onTap: _showChangeLocationDialog,
+                    onChangeLocation: _showChangeLocationDialog,
+                  ),
                   const SizedBox(height: 16),
 
                   // Today's Agricultural Advisory Banner
