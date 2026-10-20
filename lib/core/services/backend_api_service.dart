@@ -39,7 +39,7 @@ class BackendApiService {
     try {
       final res = await http
           .get(Uri.parse('$_baseUrl/health'))
-          .timeout(const Duration(milliseconds: 1500));
+          .timeout(const Duration(seconds: 4));
       _isBackendAvailable = res.statusCode == 200;
     } catch (_) {
       _isBackendAvailable = false;
@@ -228,7 +228,7 @@ class BackendApiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode(body),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -269,7 +269,7 @@ class BackendApiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode(body),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -310,7 +310,7 @@ class BackendApiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode(body),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 12));
 
       return response.statusCode == 200;
     } catch (_) {}

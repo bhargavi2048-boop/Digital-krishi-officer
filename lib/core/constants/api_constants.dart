@@ -14,7 +14,7 @@ class ApiConstants {
         return clean.endsWith('/api') ? clean : (clean.endsWith('/') ? '${clean}api' : '$clean/api');
       }
     } catch (_) {}
-    return 'http://localhost:8080/api';
+    return 'https://krishi-backend-i0ub.onrender.com/api';
   }
 
   static const String springBootAndroidUrl = 'http://10.0.2.2:8080/api';
