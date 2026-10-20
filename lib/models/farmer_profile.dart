@@ -35,6 +35,17 @@ class FarmerProfile {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  factory FarmerProfile.empty() => FarmerProfile(
+    id: '',
+    fullName: '',
+    mobileNumber: '',
+    email: '',
+    passwordHash: '',
+    city: '',
+    district: '',
+    state: '',
+  );
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

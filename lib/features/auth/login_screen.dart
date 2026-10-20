@@ -113,14 +113,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 36),
 
-                  // Email
+                  // Email or Mobile Number
                   CustomTextField(
                     controller: _emailController,
-                    label: context.tr('email'),
-                    hint: 'farmer@krishi.in',
+                    label: 'Email or Mobile Number',
+                    hint: 'farmer@krishi.in or 9876543210',
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email_outlined,
-                    validator: (v) => (v == null || !v.contains('@')) ? context.tr('errInvalidEmail') : null,
+                    prefixIcon: Icons.person_outline,
+                    validator: (v) {
+                      final clean = v?.trim() ?? '';
+                      if (clean.isEmpty) return 'Please enter your email or mobile number.';
+                      final isEmail = clean.contains('@');
+                      final cleanDigits = clean.replaceAll(RegExp(r'\D'), '');
+                      if (!isEmail && cleanDigits.length != 10) {
+                        return 'Enter a valid email address or 10-digit mobile number.';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 

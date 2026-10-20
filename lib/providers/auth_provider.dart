@@ -137,49 +137,66 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final cleanEmail = email.trim().toLowerCase();
+      final cleanInput = email.trim().toLowerCase();
+      final cleanPhone = email.replaceAll(RegExp(r'\D'), '');
+      final cleanPass = password.trim();
+
       final allUsers = _storage.getAllUsers();
+      
+      // Look for a matching user by Email OR Mobile Number
       final user = allUsers.firstWhere(
-        (u) => u.email.toLowerCase() == cleanEmail && u.passwordHash == password,
-        orElse: () => FarmerProfile(
-          id: '',
-          fullName: '',
-          mobileNumber: '',
-          email: '',
-          passwordHash: '',
-          city: '',
-          district: '',
-          state: '',
-        ),
+        (u) {
+          final uEmail = u.email.trim().toLowerCase();
+          final uPhone = u.mobileNumber.replaceAll(RegExp(r'\D'), '');
+          final emailMatches = uEmail.isNotEmpty && uEmail == cleanInput;
+          final phoneMatches = cleanPhone.length == 10 && uPhone == cleanPhone;
+          final passMatches = u.passwordHash.trim() == cleanPass;
+          return (emailMatches || phoneMatches) && passMatches;
+        },
+        orElse: () => FarmerProfile.empty(),
       );
 
       if (user.id.isEmpty) {
-        // If first run and user inputs any valid email/password, facilitate seamless login
-        if (allUsers.isEmpty && cleanEmail.isNotEmpty && password.length >= 6) {
-          final defaultUser = FarmerProfile(
-            id: 'farmer_default',
-            fullName: 'Ravi Kumar',
-            mobileNumber: '9876543210',
-            email: cleanEmail,
-            passwordHash: password,
-            city: 'Chennai',
-            district: 'Chennai',
-            state: 'Tamil Nadu',
-            mainCrop: 'Paddy (Rice)',
-            landSizeAcres: 3.5,
-            soilType: 'Clay Soil',
-            waterAvailability: 'Canal Irrigation',
-          );
-          await _storage.saveUser(defaultUser);
-          await _storage.setRememberMe(rememberMe);
-          _currentUser = defaultUser;
-          _isLoggedIn = true;
-          _isLoading = false;
-          notifyListeners();
-          return true;
-        }
+        // Check if an account with this email/phone exists
+        final accountExists = allUsers.any((u) {
+          final uEmail = u.email.trim().toLowerCase();
+          final uPhone = u.mobileNumber.replaceAll(RegExp(r'\D'), '');
+          final emailMatches = uEmail.isNotEmpty && uEmail == cleanInput;
+          final phoneMatches = cleanPhone.length == 10 && uPhone == cleanPhone;
+          return emailMatches || phoneMatches;
+        });
 
-        _errorMessage = 'Invalid email or password. Please try again.';
+        if (accountExists) {
+          _errorMessage = 'Incorrect password. Please verify your password or tap "Forgot Password".';
+        } else {
+          // If no users exist at all and clean credentials given, assist with seamless account creation
+          if (allUsers.isEmpty && cleanInput.isNotEmpty && cleanPass.length >= 6) {
+            final isEmail = cleanInput.contains('@');
+            final defaultUser = FarmerProfile(
+              id: 'farmer_${DateTime.now().millisecondsSinceEpoch}',
+              fullName: 'Farmer',
+              mobileNumber: isEmail ? '9876543210' : cleanPhone,
+              email: isEmail ? cleanInput : 'farmer@krishi.org',
+              passwordHash: cleanPass,
+              city: 'Chennai',
+              district: 'Chennai',
+              state: 'Tamil Nadu',
+              mainCrop: 'Paddy (Rice)',
+              landSizeAcres: 3.0,
+              soilType: 'Alluvial Soil',
+              waterAvailability: 'Canal Irrigation',
+            );
+            await _storage.saveUser(defaultUser);
+            await _storage.setRememberMe(rememberMe);
+            _currentUser = defaultUser;
+            _isLoggedIn = true;
+            _isLoading = false;
+            notifyListeners();
+            return true;
+          }
+
+          _errorMessage = 'No account found for this email or mobile number. Tap "New Farmer? Create Account" below to register.';
+        }
         _isLoading = false;
         notifyListeners();
         return false;
@@ -237,6 +254,27 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // --- RESET PASSWORD ---
+  Future<bool> resetPassword({required String emailOrMobile, required String newPassword}) async {
+    final cleanInput = emailOrMobile.trim().toLowerCase();
+    final cleanPhone = emailOrMobile.replaceAll(RegExp(r'\D'), '');
+    final allUsers = _storage.getAllUsers();
+
+    final index = allUsers.indexWhere((u) {
+      final uEmail = u.email.trim().toLowerCase();
+      final uPhone = u.mobileNumber.replaceAll(RegExp(r'\D'), '');
+      return (uEmail.isNotEmpty && uEmail == cleanInput) || (cleanPhone.length == 10 && uPhone == cleanPhone);
+    });
+
+    if (index >= 0) {
+      final updated = allUsers[index].copyWith(passwordHash: newPassword.trim());
+      await _storage.saveUser(updated);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 
   // --- UPDATE PROFILE ---
