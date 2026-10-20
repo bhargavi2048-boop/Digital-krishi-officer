@@ -17,9 +17,12 @@ RUN mvn clean package -DskipTests
 # Production JRE runtime
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=builder /app/target/digital-krishi-officer-backend-1.0.0.jar app.jar
+
+# Copy built JAR from builder stage (using wildcard to ensure exact match)
+COPY --from=builder /app/target/*.jar app.jar
 
 ENV PORT=8080
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Shell wrapper ensures ${PORT} and 0.0.0.0 are bound accurately in any container environment
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
