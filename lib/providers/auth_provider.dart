@@ -107,13 +107,18 @@ class AuthProvider extends ChangeNotifier {
         waterAvailability: waterAvailability,
       );
 
-      await _storage.saveUser(profile);
+      FarmerProfile effectiveProfile = profile;
+      try {
+        final backendUser = await BackendApiService().registerFarmerBackend(profile, password);
+        if (backendUser != null) {
+          effectiveProfile = backendUser;
+        }
+      } catch (_) {}
+
+      await _storage.saveUser(effectiveProfile);
       await _storage.setLanguage(preferredLanguage);
 
-      // Asynchronously synchronize with Java Spring Boot backend
-      BackendApiService().syncFarmer(profile).catchError((_) {});
-
-      _currentUser = profile;
+      _currentUser = effectiveProfile;
       _isLoggedIn = true;
       _isLoading = false;
       notifyListeners();
@@ -126,7 +131,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // --- LOCAL LOGIN ---
+  // --- LOGIN (SPRING BOOT POSTGRESQL + LOCAL OFFLINE FALLBACK) ---
   Future<bool> login({
     required String email,
     required String password,
@@ -141,6 +146,21 @@ class AuthProvider extends ChangeNotifier {
       final cleanPhone = email.replaceAll(RegExp(r'\D'), '');
       final cleanPass = password.trim();
 
+      // 1. Try Java Spring Boot + PostgreSQL Cloud Database
+      try {
+        final backendUser = await BackendApiService().loginFarmerBackend(cleanInput, cleanPass);
+        if (backendUser != null) {
+          await _storage.saveUser(backendUser);
+          await _storage.setRememberMe(rememberMe);
+          _currentUser = backendUser;
+          _isLoggedIn = true;
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        }
+      } catch (_) {}
+
+      // 2. Offline / Local device authentication fallback
       final allUsers = _storage.getAllUsers();
       
       // Look for a matching user by Email OR Mobile Number
@@ -267,6 +287,11 @@ class AuthProvider extends ChangeNotifier {
       final uPhone = u.mobileNumber.replaceAll(RegExp(r'\D'), '');
       return (uEmail.isNotEmpty && uEmail == cleanInput) || (cleanPhone.length == 10 && uPhone == cleanPhone);
     });
+
+    // Sync with cloud backend
+    try {
+      await BackendApiService().resetPasswordBackend(cleanInput, newPassword.trim());
+    } catch (_) {}
 
     if (index >= 0) {
       final updated = allUsers[index].copyWith(passwordHash: newPassword.trim());

@@ -26,24 +26,40 @@ public class FarmerServiceImpl implements FarmerService {
 
     @Override
     public FarmerDto registerOrUpdateFarmer(FarmerDto dto) {
-        Farmer farmer;
+        Farmer farmer = null;
+
         if (dto.getId() != null && farmerRepository.existsById(dto.getId())) {
-            farmer = farmerRepository.findById(dto.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Farmer", "id", dto.getId()));
-        } else {
+            farmer = farmerRepository.findById(dto.getId()).orElse(null);
+        }
+
+        // If not found by ID, look up by email or phone to update existing record
+        if (farmer == null && dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            farmer = farmerRepository.findByEmailIgnoreCase(dto.getEmail().trim()).orElse(null);
+        }
+        if (farmer == null && dto.getPhoneNumber() != null && !dto.getPhoneNumber().trim().isEmpty()) {
+            farmer = farmerRepository.findByPhoneNumber(dto.getPhoneNumber().trim()).orElse(null);
+        }
+
+        if (farmer == null) {
             farmer = new Farmer();
         }
 
         farmer.setFullName(dto.getFullName());
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            farmer.setEmail(dto.getEmail().trim().toLowerCase());
+        }
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            farmer.setPassword(dto.getPassword().trim());
+        }
         farmer.setPhoneNumber(dto.getPhoneNumber());
         farmer.setState(dto.getState());
         farmer.setDistrict(dto.getDistrict());
         farmer.setCity(dto.getCity());
-        farmer.setMainCrop(dto.getMainCrop());
-        farmer.setLandSizeAcres(dto.getLandSizeAcres());
+        farmer.setMainCrop(dto.getMainCrop() != null ? dto.getMainCrop() : "Paddy (Rice)");
+        farmer.setLandSizeAcres(dto.getLandSizeAcres() != null ? dto.getLandSizeAcres() : 2.5);
         farmer.setSoilType(dto.getSoilType());
         farmer.setWaterAvailability(dto.getWaterAvailability());
-        farmer.setPreferredLanguage(dto.getPreferredLanguage());
+        farmer.setPreferredLanguage(dto.getPreferredLanguage() != null ? dto.getPreferredLanguage() : "en");
 
         Farmer saved = farmerRepository.save(farmer);
         return mapToDto(saved);
@@ -86,6 +102,8 @@ public class FarmerServiceImpl implements FarmerService {
         return new FarmerDto(
                 farmer.getId(),
                 farmer.getFullName(),
+                farmer.getEmail(),
+                farmer.getPassword(),
                 farmer.getPhoneNumber(),
                 farmer.getState(),
                 farmer.getDistrict(),

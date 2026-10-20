@@ -14,17 +14,16 @@ public class FarmerDto {
     @NotBlank(message = "Farmer full name cannot be blank")
     private String fullName;
 
+    private String email;
+    private String password;
     private String phoneNumber;
     private String state;
     private String district;
     private String city;
 
-    @NotBlank(message = "Main crop is required")
-    private String mainCrop;
+    private String mainCrop = "Paddy (Rice)";
 
-    @NotNull(message = "Land size is required")
-    @Positive(message = "Land size must be positive")
-    private Double landSizeAcres;
+    private Double landSizeAcres = 2.5;
 
     private String soilType;
     private String waterAvailability;
@@ -36,8 +35,16 @@ public class FarmerDto {
     public FarmerDto(Long id, String fullName, String phoneNumber, String state, String district,
                      String city, String mainCrop, Double landSizeAcres, String soilType,
                      String waterAvailability, String preferredLanguage) {
+        this(id, fullName, null, null, phoneNumber, state, district, city, mainCrop, landSizeAcres, soilType, waterAvailability, preferredLanguage);
+    }
+
+    public FarmerDto(Long id, String fullName, String email, String password, String phoneNumber,
+                     String state, String district, String city, String mainCrop, Double landSizeAcres,
+                     String soilType, String waterAvailability, String preferredLanguage) {
         this.id = id;
         this.fullName = fullName;
+        this.email = email;
+        this.password = password;
         this.phoneNumber = phoneNumber;
         this.state = state;
         this.district = district;
@@ -64,6 +71,22 @@ public class FarmerDto {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getPhoneNumber() {

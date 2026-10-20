@@ -170,7 +170,7 @@ class BackendApiService {
     } catch (_) {}
   }
 
-  /// Synchronizes farmer profile to Java Spring Boot H2 database
+  /// Synchronizes farmer profile to Java Spring Boot database
   Future<void> syncFarmer(FarmerProfile profile) async {
     try {
       final available = await isBackendAvailable();
@@ -180,6 +180,7 @@ class BackendApiService {
         'fullName': profile.fullName,
         'phoneNumber': profile.mobileNumber,
         'email': profile.email,
+        'password': profile.passwordHash,
         'state': profile.state,
         'district': profile.district,
         'city': profile.city,
@@ -198,5 +199,121 @@ class BackendApiService {
           )
           .timeout(const Duration(seconds: 5));
     } catch (_) {}
+  }
+
+  /// Registers farmer in Java Spring Boot backend + PostgreSQL database
+  Future<FarmerProfile?> registerFarmerBackend(FarmerProfile profile, String password) async {
+    try {
+      final available = await isBackendAvailable();
+      if (!available) return null;
+
+      final body = {
+        'fullName': profile.fullName,
+        'email': profile.email,
+        'password': password,
+        'phoneNumber': profile.mobileNumber,
+        'state': profile.state,
+        'district': profile.district,
+        'city': profile.city,
+        'mainCrop': profile.mainCrop,
+        'landSizeAcres': profile.landSizeAcres,
+        'soilType': profile.soilType,
+        'waterAvailability': profile.waterAvailability,
+        'preferredLanguage': profile.preferredLanguage,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/auth/register'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(body),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return FarmerProfile(
+          id: data['id']?.toString() ?? profile.id,
+          fullName: data['fullName'] ?? profile.fullName,
+          mobileNumber: data['phoneNumber'] ?? profile.mobileNumber,
+          email: data['email'] ?? profile.email,
+          passwordHash: password,
+          city: data['city'] ?? profile.city,
+          district: data['district'] ?? profile.district,
+          state: data['state'] ?? profile.state,
+          preferredLanguage: data['preferredLanguage'] ?? profile.preferredLanguage,
+          mainCrop: data['mainCrop'] ?? profile.mainCrop,
+          landSizeAcres: (data['landSizeAcres'] is num) ? (data['landSizeAcres'] as num).toDouble() : profile.landSizeAcres,
+          soilType: data['soilType'] ?? profile.soilType,
+          waterAvailability: data['waterAvailability'] ?? profile.waterAvailability,
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Authenticates farmer using Java Spring Boot backend + PostgreSQL database
+  Future<FarmerProfile?> loginFarmerBackend(String identifier, String password) async {
+    try {
+      final available = await isBackendAvailable();
+      if (!available) return null;
+
+      final body = {
+        'identifier': identifier,
+        'password': password,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(body),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return FarmerProfile(
+          id: data['id']?.toString() ?? 'farmer_${DateTime.now().millisecondsSinceEpoch}',
+          fullName: data['fullName'] ?? 'Farmer',
+          mobileNumber: data['phoneNumber'] ?? identifier,
+          email: data['email'] ?? identifier,
+          passwordHash: password,
+          city: data['city'] ?? '',
+          district: data['district'] ?? '',
+          state: data['state'] ?? '',
+          preferredLanguage: data['preferredLanguage'] ?? 'en',
+          mainCrop: data['mainCrop'] ?? 'Paddy (Rice)',
+          landSizeAcres: (data['landSizeAcres'] is num) ? (data['landSizeAcres'] as num).toDouble() : 2.5,
+          soilType: data['soilType'] ?? 'Alluvial Soil',
+          waterAvailability: data['waterAvailability'] ?? 'Canal Irrigation',
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Resets farmer password in Java Spring Boot backend + PostgreSQL database
+  Future<bool> resetPasswordBackend(String identifier, String newPassword) async {
+    try {
+      final available = await isBackendAvailable();
+      if (!available) return false;
+
+      final body = {
+        'identifier': identifier,
+        'password': newPassword,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/auth/reset-password'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(body),
+          )
+          .timeout(const Duration(seconds: 5));
+
+      return response.statusCode == 200;
+    } catch (_) {}
+    return false;
   }
 }

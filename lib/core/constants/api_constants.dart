@@ -1,10 +1,22 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
   // Google Gemini API Base
   static const String geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
   static const String defaultGeminiModel = 'gemini-flash-lite-latest';
 
   // Java Spring Boot Backend Base URL
-  static const String springBootBaseUrl = 'http://localhost:8080/api';
+  static String get springBootBaseUrl {
+    try {
+      final envUrl = dotenv.env['BACKEND_API_URL'];
+      if (envUrl != null && envUrl.trim().isNotEmpty) {
+        final clean = envUrl.trim();
+        return clean.endsWith('/api') ? clean : (clean.endsWith('/') ? '${clean}api' : '$clean/api');
+      }
+    } catch (_) {}
+    return 'http://localhost:8080/api';
+  }
+
   static const String springBootAndroidUrl = 'http://10.0.2.2:8080/api';
 
   // Open-Meteo Weather Base (Free, no API key required, reliable for Indian coordinates)

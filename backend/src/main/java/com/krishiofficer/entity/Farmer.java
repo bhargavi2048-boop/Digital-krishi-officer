@@ -10,12 +10,21 @@ import jakarta.validation.constraints.Positive;
  * Extends BaseEntity to inherit identity and timestamp behavior.
  */
 @Entity
-@Table(name = "farmers")
+@Table(name = "farmers", indexes = {
+    @Index(name = "idx_farmer_email", columnList = "email"),
+    @Index(name = "idx_farmer_phone", columnList = "phone_number")
+})
 public class Farmer extends BaseEntity {
 
     @NotBlank(message = "Farmer full name cannot be blank")
     @Column(name = "full_name", nullable = false)
     private String fullName;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "password")
+    private String password;
 
     @Column(name = "phone_number")
     private String phoneNumber;
@@ -52,12 +61,21 @@ public class Farmer extends BaseEntity {
         super();
     }
 
-    // Parameterized Constructor (OOP Object Instantiation)
+    // Overloaded Constructor without email/password (for backward compatibility)
     public Farmer(String fullName, String phoneNumber, String state, String district, String city,
                   String mainCrop, Double landSizeAcres, String soilType, String waterAvailability,
                   String preferredLanguage) {
+        this(fullName, null, null, phoneNumber, state, district, city, mainCrop, landSizeAcres, soilType, waterAvailability, preferredLanguage);
+    }
+
+    // Parameterized Constructor (OOP Object Instantiation)
+    public Farmer(String fullName, String email, String password, String phoneNumber, String state,
+                  String district, String city, String mainCrop, Double landSizeAcres, String soilType,
+                  String waterAvailability, String preferredLanguage) {
         super();
         this.fullName = fullName;
+        this.email = email;
+        this.password = password;
         this.phoneNumber = phoneNumber;
         this.state = state;
         this.district = district;
@@ -76,6 +94,22 @@ public class Farmer extends BaseEntity {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getPhoneNumber() {
@@ -156,6 +190,7 @@ public class Farmer extends BaseEntity {
         return "Farmer{" +
                 "id=" + getId() +
                 ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
                 ", district='" + district + '\'' +
                 ", mainCrop='" + mainCrop + '\'' +
                 ", landSizeAcres=" + landSizeAcres +

@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface FarmerRepository extends JpaRepository<Farmer, Long> {
 
+    Optional<Farmer> findByEmailIgnoreCase(String email);
+
     Optional<Farmer> findByPhoneNumber(String phoneNumber);
 
     Optional<Farmer> findByFullNameIgnoreCase(String fullName);
