@@ -14,10 +14,11 @@ class WeatherService {
   String get apiKey {
     try {
       final key = dotenv.env['WEATHER_API_KEY'];
-      return (key != null && key.trim().isNotEmpty && key != 'YOUR_WEATHER_API_KEY') ? key.trim() : '';
-    } catch (_) {
-      return '';
-    }
+      if (key != null && key.trim().isNotEmpty && key != 'YOUR_WEATHER_API_KEY') {
+        return key.trim();
+      }
+    } catch (_) {}
+    return ApiConstants.defaultOpenWeatherApiKey;
   }
 
   // Geocodes location name to latitude & longitude using local dictionary + Open-Meteo fallback
@@ -77,6 +78,22 @@ class WeatherService {
         lon = coords['lon']!;
       }
 
+      // 1. Try OpenWeatherMap REST API first if apiKey is available
+      if (apiKey.isNotEmpty) {
+        try {
+          final owmData = await _fetchFromOpenWeather(
+            lat: lat,
+            lon: lon,
+            locationName: locationName,
+            cropName: cropName,
+          );
+          if (owmData != null) {
+            return owmData;
+          }
+        } catch (_) {}
+      }
+
+      // 2. Fallback to Open-Meteo REST API
       final uri = Uri.parse(
         '${ApiConstants.openMeteoForecastUrl}?'
         'latitude=$lat&longitude=$lon'
@@ -263,5 +280,135 @@ class WeatherService {
           'Notice: If you planned pesticide spraying on $cropName, postpone it as rain reduces effectiveness.\n\n'
           'Moderate humidity (72%) requires inspecting lower foliage for early blight.',
     );
+  }
+
+  // Fetches live weather and 5-day forecast from OpenWeatherMap REST API
+  Future<WeatherData?> _fetchFromOpenWeather({
+    required double lat,
+    required double lon,
+    required String locationName,
+    required String cropName,
+  }) async {
+    try {
+      final key = apiKey;
+      if (key.isEmpty) return null;
+
+      // 1. Current Weather
+      final currentUrl = Uri.parse(
+        '${ApiConstants.openWeatherMapBaseUrl}/weather?lat=$lat&lon=$lon&appid=$key&units=metric',
+      );
+      final currentRes = await http.get(currentUrl).timeout(ApiConstants.connectTimeout);
+      if (currentRes.statusCode != 200) return null;
+
+      final currentData = json.decode(currentRes.body);
+      final main = currentData['main'];
+      final wind = currentData['wind'];
+      final weatherList = currentData['weather'] as List?;
+
+      final temp = (main['temp'] as num).toDouble();
+      final humidity = (main['humidity'] as num).toInt();
+      final windSpeed = ((wind != null && wind['speed'] != null)
+          ? ((wind['speed'] as num).toDouble() * 3.6) // m/s to km/h
+          : 12.0);
+
+      String condition = 'Partly Cloudy';
+      if (weatherList != null && weatherList.isNotEmpty) {
+        condition = weatherList[0]['main'] ?? 'Partly Cloudy';
+      }
+
+      // 2. 5-Day Forecast
+      final forecastUrl = Uri.parse(
+        '${ApiConstants.openWeatherMapBaseUrl}/forecast?lat=$lat&lon=$lon&appid=$key&units=metric',
+      );
+      final forecastRes = await http.get(forecastUrl).timeout(ApiConstants.connectTimeout);
+
+      final List<DailyForecast> dailyForecasts = [];
+      int currentRainProb = 20;
+
+      if (forecastRes.statusCode == 200) {
+        final forecastData = json.decode(forecastRes.body);
+        final list = forecastData['list'] as List?;
+
+        if (list != null && list.isNotEmpty) {
+          final firstPop = list[0]['pop'];
+          if (firstPop is num) {
+            currentRainProb = (firstPop * 100).toInt();
+          }
+
+          final Map<String, List<Map<String, dynamic>>> dayBuckets = {};
+          for (final item in list) {
+            final dtTxt = item['dt_txt'] as String?;
+            if (dtTxt != null && dtTxt.length >= 10) {
+              final dateKey = dtTxt.substring(0, 10);
+              dayBuckets.putIfAbsent(dateKey, () => []).add(item);
+            }
+          }
+
+          dayBuckets.forEach((dateStr, items) {
+            if (dailyForecasts.length >= 7) return;
+
+            double maxT = -999.0;
+            double minT = 999.0;
+            double maxPop = 0.0;
+            String dayCond = 'Partly Cloudy';
+
+            for (final slice in items) {
+              final m = slice['main'];
+              if (m != null) {
+                final tMax = (m['temp_max'] as num?)?.toDouble() ?? 0.0;
+                final tMin = (m['temp_min'] as num?)?.toDouble() ?? 0.0;
+                if (tMax > maxT) maxT = tMax;
+                if (tMin < minT) minT = tMin;
+              }
+              final p = slice['pop'];
+              if (p is num && p.toDouble() > maxPop) {
+                maxPop = p.toDouble();
+              }
+              final w = slice['weather'] as List?;
+              if (w != null && w.isNotEmpty) {
+                final c = w[0]['main'] as String?;
+                if (c == 'Rain' || c == 'Thunderstorm') {
+                  dayCond = c!;
+                } else if (dayCond != 'Rain' && c != null) {
+                  dayCond = c;
+                }
+              }
+            }
+
+            final parsedDate = DateTime.tryParse(dateStr) ?? DateTime.now();
+            dailyForecasts.add(
+              DailyForecast(
+                date: parsedDate,
+                maxTemp: maxT > -999 ? maxT : temp + 2.0,
+                minTemp: minT < 999 ? minT : temp - 3.0,
+                condition: dayCond,
+                rainProbability: (maxPop * 100).toInt(),
+              ),
+            );
+          });
+        }
+      }
+
+      final advisory = _generateAgriculturalAdvisory(
+        temp: temp,
+        humidity: humidity,
+        rainProb: currentRainProb,
+        windSpeed: windSpeed,
+        cropName: cropName,
+      );
+
+      return WeatherData(
+        temperature: temp,
+        condition: condition,
+        humidity: humidity,
+        windSpeed: windSpeed,
+        rainProbability: currentRainProb,
+        locationName: locationName,
+        forecast: dailyForecasts,
+        agriculturalAdvisory: advisory,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }

@@ -23,8 +23,9 @@ class ApiConstants {
   static const String openMeteoForecastUrl = 'https://api.open-meteo.com/v1/forecast';
   static const String openMeteoGeocodingUrl = 'https://geocoding-api.open-meteo.com/v1/search';
 
-  // OpenWeatherMap API Base (Alternative if user configures WEATHER_API_KEY in .env)
+  // OpenWeatherMap API Base and Key
   static const String openWeatherMapBaseUrl = 'https://api.openweathermap.org/data/2.5';
+  static const String defaultOpenWeatherApiKey = '671d789ae40566e427e7762d4d80fa58';
 
   // Timeout settings
   static const Duration connectTimeout = Duration(seconds: 15);
