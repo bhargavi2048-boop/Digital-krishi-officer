@@ -34,7 +34,7 @@ class AlertsScreen extends StatelessWidget {
     }
   }
 
-  void _dispatchAlert(BuildContext context, FarmerAlert alert, String channel) async {
+  void _dispatchWhatsAppAlert(BuildContext context, FarmerAlert alert) async {
     final authProv = Provider.of<AuthProvider>(context, listen: false);
     final farmer = authProv.currentUser;
     final phone = farmer?.mobileNumber ?? '';
@@ -51,12 +51,8 @@ class AlertsScreen extends StatelessWidget {
         '----------------------------------\n'
         'Digital Krishi Officer AI Advisory System';
 
-    // 1. Dispatch via native messaging app
-    if (channel == 'WHATSAPP') {
-      await UrlLauncherHelper.launchWhatsApp(context: context, phone: phone, message: message);
-    } else {
-      await UrlLauncherHelper.launchSms(context: context, phone: phone, message: message);
-    }
+    // 1. Dispatch via native WhatsApp messaging
+    await UrlLauncherHelper.launchWhatsApp(context: context, phone: phone, message: message);
 
     // 2. Concurrently record dispatch in Java Spring Boot backend
     BackendApiService().dispatchCloudAlert(
@@ -65,15 +61,15 @@ class AlertsScreen extends StatelessWidget {
       cropName: crop,
       alertType: alert.type.toUpperCase(),
       severity: alert.severity.toUpperCase(),
-      channel: channel,
+      channel: 'WHATSAPP',
       message: alert.description,
     ).catchError((_) => false);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$channel Alert dispatched for $crop in $district!'),
-          backgroundColor: channel == 'WHATSAPP' ? const Color(0xFF25D366) : const Color(0xFF1976D2),
+          content: Text('WhatsApp Alert dispatched for $crop in $district!'),
+          backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           duration: const Duration(seconds: 3),
@@ -136,12 +132,12 @@ class AlertsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                'Live Push Notification Dispatcher',
+                                'Live WhatsApp Push Alert Dispatcher',
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1B5E20)),
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Tap WhatsApp or SMS on any alert below to broadcast severe weather & pest advisories to yourself or farm workers.',
+                                'Tap WhatsApp Alert on any notification below to broadcast severe weather & pest advisories to yourself, family, or farm workers.',
                                 style: TextStyle(fontSize: 11, color: Color(0xFF2E7D32)),
                               ),
                             ],
@@ -248,33 +244,19 @@ class AlertsScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1976D2),
-                                  side: const BorderSide(color: Color(0xFF1976D2), width: 1.2),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                icon: const Icon(Icons.sms_outlined, size: 15),
-                                label: const Text('SMS Alert', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                onPressed: () => _dispatchAlert(context, a, 'SMS'),
-                              ),
-                              const SizedBox(width: 8),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF25D366),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                   minimumSize: Size.zero,
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                icon: const Icon(Icons.chat, size: 15),
+                                icon: const Icon(Icons.chat, size: 16),
                                 label: const Text('WhatsApp Alert', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                onPressed: () => _dispatchAlert(context, a, 'WHATSAPP'),
+                                onPressed: () => _dispatchWhatsAppAlert(context, a),
                               ),
                             ],
                           ),
