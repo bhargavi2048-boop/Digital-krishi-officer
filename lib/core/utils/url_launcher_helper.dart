@@ -16,7 +16,6 @@ class UrlLauncherHelper {
       if (canLaunch) {
         return await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        // Fallback to platform default
         return await launchUrl(uri);
       }
     } catch (e) {
@@ -30,6 +29,69 @@ class UrlLauncherHelper {
           ),
         );
       }
+      return false;
+    }
+  }
+
+  /// Dispatches an emergency agricultural alert via WhatsApp
+  static Future<bool> launchWhatsApp({
+    BuildContext? context,
+    String? phone,
+    required String message,
+  }) async {
+    try {
+      final cleanText = Uri.encodeComponent(message);
+      final cleanPhone = (phone != null && phone.trim().isNotEmpty)
+          ? phone.replaceAll(RegExp(r'\D'), '')
+          : '';
+
+      final String urlString;
+      if (cleanPhone.length == 10) {
+        urlString = 'https://wa.me/91$cleanPhone?text=$cleanText';
+      } else if (cleanPhone.isNotEmpty) {
+        urlString = 'https://wa.me/$cleanPhone?text=$cleanText';
+      } else {
+        urlString = 'https://wa.me/?text=$cleanText';
+      }
+
+      final uri = Uri.parse(urlString);
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        return await launchUrl(uri);
+      }
+      return launched;
+    } catch (e) {
+      debugPrint('WhatsApp launch error: $e');
+      return false;
+    }
+  }
+
+  /// Dispatches an emergency agricultural alert via native SMS
+  static Future<bool> launchSms({
+    BuildContext? context,
+    String? phone,
+    required String message,
+  }) async {
+    try {
+      final cleanText = Uri.encodeComponent(message);
+      final cleanPhone = (phone != null && phone.trim().isNotEmpty)
+          ? phone.replaceAll(RegExp(r'\D'), '')
+          : '';
+
+      final Uri uri;
+      if (cleanPhone.isNotEmpty) {
+        uri = Uri.parse('sms:$cleanPhone?body=$cleanText');
+      } else {
+        uri = Uri.parse('sms:?body=$cleanText');
+      }
+
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        return await launchUrl(uri);
+      }
+      return launched;
+    } catch (e) {
+      debugPrint('SMS launch error: $e');
       return false;
     }
   }

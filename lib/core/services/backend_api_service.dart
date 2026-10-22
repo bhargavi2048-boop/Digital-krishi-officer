@@ -316,4 +316,43 @@ class BackendApiService {
     } catch (_) {}
     return false;
   }
+
+  /// Dispatches an emergency SMS / WhatsApp notification via Java Spring Boot backend
+  Future<bool> dispatchCloudAlert({
+    required String phone,
+    String? district,
+    String? cropName,
+    required String alertType,
+    required String severity,
+    required String channel,
+    required String message,
+  }) async {
+    try {
+      final available = await isBackendAvailable();
+      if (!available) return false;
+
+      final body = {
+        'recipientPhone': phone,
+        'district': district ?? 'Thanjavur',
+        'cropName': cropName ?? 'Paddy (Rice)',
+        'alertType': alertType,
+        'severity': severity,
+        'channel': channel,
+        'message': message,
+      };
+
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/notifications/dispatch-alert'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode(body),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error dispatching cloud alert: $e');
+      return false;
+    }
+  }
 }
